@@ -35,7 +35,7 @@ namespace iris
 
 namespace map
 {
-Map::Map(const Parameter& parameter, const Eigen::Matrix4f& T_init)
+Map::Map(const Parameter& parameter, const Eigen::Matrix4f& T_init)//这段代码定义了 Map 类的构造函数 Map::Map，并通过初始化列表对类的成员变量进行初始化
     : cache_file("iris.cache"), parameter(parameter),
       local_target_cloud(new pcXYZ),
       local_target_normals(new pcNormal)
@@ -43,7 +43,8 @@ Map::Map(const Parameter& parameter, const Eigen::Matrix4f& T_init)
   bool recalculation_is_necessary = isRecalculationNecessary();
 
   if (!recalculation_is_necessary) {
-    all_target_cloud = pcXYZ::Ptr(new pcXYZ);
+    all_target_cloud = pcXYZ::Ptr(new pcXYZ); //创建一个智能指针对象，并将它指向新创建的 pcXYZ 对象
+    all_target_cloud = pcXYZ::Ptr(new pcXYZ); 
     all_target_normals = pcNormal::Ptr(new pcNormal);
     all_sparse_cloud = pcXYZ::Ptr(new pcXYZ);
 

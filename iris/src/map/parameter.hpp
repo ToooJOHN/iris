@@ -50,6 +50,9 @@ struct Parameter {
   {
     std::stringstream ss;
     ss << pcd_file << " " << std::to_string(voxel_grid_leaf) << " " << std::to_string(normal_search_radius);
+    //这行代码将 pcd_file 的值、voxel_grid_leaf 的值（以字符串形式）和 normal_search_radius 的值（以字符串形式）依次插入到 ss 中，并用空格分隔。
+    //比如，如果 pcd_file 是 "example.pcd"，voxel_grid_leaf 是 0.05f，normal_search_radius 是 0.1f，那么最终构建的字符串将会是："example.pcd 0.050000 0.100000"
+
     return ss.str();
   }
 };
