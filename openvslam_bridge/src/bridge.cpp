@@ -23,6 +23,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+//这段代码实现了一个类 BridgeOpenVSLAM，它与 OpenVSLAM 系统进行交互，为 iris 系统提供处理图像和获取地标点云信息的功能
 #include "bridge.hpp"
 #include <openvslam/config.h>
 #include <openvslam/data/landmark.h>
@@ -91,7 +93,7 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
   }
 
   std::set<openvslam::data::landmark*> local_landmarks;
-  SLAM_ptr->get_map_publisher()->get_landmarks(local_landmarks);
+  SLAM_ptr->get_map_publisher()->get_landmarks(local_landmarks);//从 OpenVSLAM 系统中获取当前的地标点，并将它们存储在 local_landmarks 集合中
 
   vslam_data->clear();
 
@@ -106,7 +108,7 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
     if (local_lm->will_be_erased()) continue;
     if (local_lm->get_observed_ratio() < accuracy) continue;
     if (max_id > recollection && last_observed_id < max_id - recollection) continue;
-
+  //迭代所有地标点，根据地标点的观测比率、是否将被删除等条件过滤地标点
     const openvslam::Vec3_t pos = local_lm->get_pos_in_world();
     // const openvslam::Vec3_t normal = local_lm->get_obs_mean_normal();
 
@@ -117,7 +119,7 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
 
     Eigen::Vector3f t = getCameraPose().inverse().topRightCorner(3, 1);
     if (pos.y() - t.y() < -height) continue;
-
+    //获取地标点在世界坐标系中的位置，并根据其与相机的距离计算一个权重。然后对地标点进行进一步的过滤
     pcl::PointXYZINormal p;
     p.x = static_cast<float>(pos.x());
     p.y = static_cast<float>(pos.y());
@@ -127,6 +129,7 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
     // p.normal_z = static_cast<float>(normal.z());
     p.intensity = weight;
     vslam_data->push_back(p);
+    //将通过过滤的地标点的位置和权重值存储在 pcl::PointXYZINormal 类型的点云数据结构中，并将其添加到 vslam_data 点云中
   }
 
   auto t1 = std::chrono::system_clock::now();
@@ -139,28 +142,28 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
   return;
 }
 
-int BridgeOpenVSLAM::getState() const
+int BridgeOpenVSLAM::getState() const//getState 函数返回当前 OpenVSLAM 的跟踪状态
 {
   return static_cast<int>(SLAM_ptr->get_frame_publisher()->get_tracking_state());
 }
 
-cv::Mat BridgeOpenVSLAM::getFrame() const
+cv::Mat BridgeOpenVSLAM::getFrame() const//getFrame 函数返回当前帧的图像数据，调用 OpenVSLAM 的 draw_frame 函数
 {
   return SLAM_ptr->get_frame_publisher()->draw_frame(false);
 }
 
-Eigen::Matrix4f BridgeOpenVSLAM::getCameraPose() const
+Eigen::Matrix4f BridgeOpenVSLAM::getCameraPose() const//getCameraPose 函数返回当前相机的位姿矩阵
 {
   return SLAM_ptr->get_map_publisher()->get_current_cam_pose().cast<float>();
 }
 
-void BridgeOpenVSLAM::requestReset()
+void BridgeOpenVSLAM::requestReset()//requestReset 函数检查是否已请求重置 SLAM 系统，如果没有，则请求重置
 {
   if (!SLAM_ptr->reset_is_requested())
     SLAM_ptr->request_reset();
 }
 
-void BridgeOpenVSLAM::execute(const cv::Mat& image)
+void BridgeOpenVSLAM::execute(const cv::Mat& image)//execute 函数处理输入图像并将其传递给 SLAM 系统。如果跟踪状态变为丢失（Lost），则请求重置 SLAM 系统
 {
   SLAM_ptr->feed_monocular_frame(image, 0.05, cv::Mat{});
   if (SLAM_ptr->get_frame_publisher()->get_tracking_state() == openvslam::tracker_state_t::Lost) {
@@ -169,7 +172,7 @@ void BridgeOpenVSLAM::execute(const cv::Mat& image)
   }
 }
 
-void BridgeOpenVSLAM::setCriteria(unsigned int recollection_, float accuracy_)
+void BridgeOpenVSLAM::setCriteria(unsigned int recollection_, float accuracy_)//setCriteria 函数设置地标点的回收和精度标准，并确保它们在合理范围内
 {
   recollection = recollection_;
   accuracy = accuracy_;

@@ -36,6 +36,8 @@
  * $Id$
  *
  */
+
+//此文件用來計算對應關係定義了determineCorrespondences函數並在optimizer.cpp被使用
 #ifndef PCL_REGISTRATION_IMPL_CORRESPONDENCE_ESTIMATION_BACK_PROJECTION_HPP_
 #define PCL_REGISTRATION_IMPL_CORRESPONDENCE_ESTIMATION_BACK_PROJECTION_HPP_
 

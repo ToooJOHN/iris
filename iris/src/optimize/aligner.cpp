@@ -35,7 +35,7 @@
 #include <g2o/solvers/dense/linear_solver_dense.h>
 #include <g2o/stuff/sampler.h>
 #include <g2o/types/sim3/types_seven_dof_expmap.h>
-
+//此文件用來定義了estimate7DoF函數並在optimizer.cpp被使用
 namespace iris
 {
 namespace optimize
