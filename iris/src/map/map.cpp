@@ -69,10 +69,10 @@ Map::Map(const Parameter& parameter, const Eigen::Matrix4f& T_init)//这段代�
     util::loadMap(parameter.pcd_file, all_target_cloud, all_target_normals, parameter.voxel_grid_leaf, parameter.normal_search_radius);
 
     {
-      pcl::VoxelGrid<pcl::PointXYZ> filter;
-      filter.setInputCloud(all_target_cloud);
-      filter.setLeafSize(4 * parameter.voxel_grid_leaf, 4 * parameter.voxel_grid_leaf, 4 * parameter.voxel_grid_leaf);
-      filter.filter(*all_sparse_cloud);
+      pcl::VoxelGrid<pcl::PointXYZ> filter;// 創建一個體素濾波器對象
+      filter.setInputCloud(all_target_cloud);// 設置要進行濾波處理的輸入點雲（all_target_cloud）
+      filter.setLeafSize(4 * parameter.voxel_grid_leaf, 4 * parameter.voxel_grid_leaf, 4 * parameter.voxel_grid_leaf);// 設置濾波器的葉子大小為原大小的四倍，以進行稀疏化
+      filter.filter(*all_sparse_cloud); // 對點雲進行濾波，結果存儲在 all_sparse_cloud 中
     }
 
 
@@ -97,16 +97,16 @@ Map::Map(const Parameter& parameter, const Eigen::Matrix4f& T_init)//这段代�
   }
 
   // Make submaps
-  for (size_t i = 0; i < all_target_cloud->size(); i++) {
-    pcl::PointXYZ p = all_target_cloud->at(i);
-    pcl::Normal n = all_target_normals->at(i);
+  for (size_t i = 0; i < all_target_cloud->size(); i++) {//使用 for 循环遍历 all_target_cloud 中的每个点，all_target_cloud->size() 返回点云中点的总数。
+    pcl::PointXYZ p = all_target_cloud->at(i);//对于每个点，分别获取其对应的点云坐标 p 和法向量 n
+    pcl::Normal n = all_target_normals->at(i);//对于每个点，分别获取其对应的点云坐标 p 和法向量 n
 
-    int id_x = static_cast<int>(std::floor(p.x / L));
-    int id_y = static_cast<int>(std::floor(p.y / L));
+    int id_x = static_cast<int>(std::floor(p.x / L));//通过将 x 和 y 坐标除以 L，我们将点的实际坐标转换为子地图单元的索引
+    int id_y = static_cast<int>(std::floor(p.y / L));//通过将 x 和 y 坐标除以 L，我们将点的实际坐标转换为子地图单元的索引
 
-    std::pair key = std::make_pair(id_x, id_y);
-    submap_cloud[key].push_back(p);
-    submap_normals[key].push_back(n);
+    std::pair key = std::make_pair(id_x, id_y);//键值对的生成：使用 id_x 和 id_y 生成一个唯一的 key，用来标识子地图单元
+    submap_cloud[key].push_back(p);//submap_cloud[key]：使用 key 作为索引，访问或创建一个子地图单元的点云集合。如果 submap_cloud 中还没有这个 key，那么它会自动创建一个新的条目
+    submap_normals[key].push_back(n);//push_back(p)：将点 p 添加到 submap_cloud[key] 对应的点云集合中
   }
 
   // Construct local map
@@ -162,22 +162,37 @@ bool Map::isUpdateNecessary(const Eigen::Matrix4f& T) const
   return false;
 }
 
-void Map::updateLocalmap(const Eigen::Matrix4f& T)
+void Map::updateLocalmap(const Eigen::Matrix4f& T)//updateLocalmap 是 Map 类的成员函数，接受一个 Eigen::Matrix4f 类型的参数 T，表示当前的位姿矩阵
 {
   std::cout << "\033[1;4;36m###############" << std::endl;
   std::cout << "Update Localmap" << std::endl;
   std::cout << "###############\033[m" << std::endl;
 
-  Eigen::Vector3f t = T.topRightCorner(3, 1);
+  Eigen::Vector3f t = T.topRightCorner(3, 1);//从位姿矩阵 T 中提取出右上角的 3x1 部分，这表示平移向量 t，即当前相机的位置信息
   const float L = parameter.submap_grid_leaf;
   int id_x = static_cast<int>(std::floor(t.x() / L));
   int id_y = static_cast<int>(std::floor(t.y() / L));
+  //t.x() / L：将平移向量 t 的 x 坐标除以子地图单元的大小 L，确定当前点在 x 方向上的相对位置
+  //std::floor(t.x() / L)：使用 std::floor 函数将结果向下取整，得到点在子地图网格中的整数索引
+  //static_cast<int>(...)：将结果转换为整数，分别存储在 id_x 和 id_y 中，表示当前点在子地图中的 x 和 y 方向上的索引位置
   std::cout << "id_x " << id_x << " id_y " << id_y << std::endl;
 
   int pattern = static_cast<int>(yawFromPose(T) / (3.14f / 4.0f));
+  //yawFromPose(T)：调用函数 yawFromPose 从位姿矩阵 T 中计算出当前的偏航角（即相对于北方向的角度）
+  //yawFromPose(T) / (3.14f / 4.0f)：将偏航角除以 π/4，得到一个与当前方向模式相关的值（将圆周分为八个部分）
   int x_min, y_min, dx, dy;
-  float new_info_theta;
-  switch (pattern) {
+  //x_min：局部地图在 x 方向上的起始子地图单元的索引
+  //y_min：局部地图在 y 方向上的起始子地图单元的索引
+
+  
+  //为什么 x_min 和 y_min 是左上角？
+  //x_min = id_x - <某个偏移量>：这是通过从当前所在位置 id_x 向左（减少 x 值）确定的。因此，x_min 是该区域在 x 方向上的最小值。
+  //y_min = id_y - <某个偏移量>：同样地，这是通过从当前所在位置 id_y 向上（减少 y 值）确定的。因此，y_min 是该区域在 y 方向上的最小值。
+  
+  //dx：局部地图在 x 方向上覆盖的子地图单元的数量
+  //dy：局部地图在 y 方向上覆盖的子地图单元的数量
+  float new_info_theta;//声明 new_info_theta，用于存储新的角度信息
+  switch (pattern) {//根据 pattern 的不同值选择不同的子地图范围和方向处理逻辑
   case 0:
   case 7:
     x_min = id_x - 1;
@@ -218,13 +233,17 @@ void Map::updateLocalmap(const Eigen::Matrix4f& T)
     local_target_cloud->clear();
     local_target_normals->clear();
 
-    for (int i = 0; i < dx; i++) {
+    for (int i = 0; i < dx; i++) {       //遍历当前局部地图覆盖的所有子地图单元
       for (int j = 0; j < dy; j++) {
-        std::pair<int, int> key = std::make_pair(x_min + i, y_min + j);
-        if (submap_cloud.count(key) == 0) {
+        std::pair<int, int> key = std::make_pair(x_min + i, y_min + j);//计算当前遍历到的子地图单元的索引
+        if (submap_cloud.count(key) == 0) {//
           continue;
         }
+        //submap_cloud.count(key)：检查在 submap_cloud 中是否存在 key 对应的子地图单元的数据
+        //如果 count 返回 0，意味着 key 对应的子地图单元没有数据
+        //如果当前子地图单元没有数据，则跳过当前循环，继续检查下一个子地图单元
         *local_target_cloud += submap_cloud[key];
+        //如果 key 对应的子地图单元存在数据，这行代码将 submap_cloud[key] 中的点云数据累加到 local_target_cloud 中
         *local_target_normals += submap_normals[key];
       }
     }
@@ -233,6 +252,10 @@ void Map::updateLocalmap(const Eigen::Matrix4f& T)
     localmap_info.x = (static_cast<float>(id_x) + 0.5f) * L,
     localmap_info.y = (static_cast<float>(id_y) + 0.5f) * L,
     localmap_info.theta = new_info_theta;
+    //更新局部地图（local map）的中心位置和方向角度 将 id_x 和 id_y 转换为真实坐标
+    //static_cast<float>(id_x) 和 static_cast<float>(id_y)：将整数索引 id_x 和 id_y 转换为浮点数，以便进行后续的精确计算
+    //+ 0.5f：将 id_x 和 id_y 加上 0.5f 是为了将坐标从子地图单元的左上角移动到子地图单元的中心位置
+    //将索引乘以单元格大小 L，转换为真实的物理坐标
   }
   std::cout << "new map-info: "
             << localmap_info.x << ", "

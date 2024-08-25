@@ -125,17 +125,17 @@ void loadMap(
   normals->clear();
 
   // Load map pointcloud
-  pcl::PointCloud<pcl::PointXYZ>::Ptr all_cloud(new pcl::PointCloud<pcl::PointXYZ>());
-  pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_file, *all_cloud);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr all_cloud(new pcl::PointCloud<pcl::PointXYZ>());// 創建一個新的 PointCloud 智能指針，存儲完整的點雲數據
+  pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_file, *all_cloud);// 從 pcd_file 指定的文件中加載點雲數據到 all_cloud
 
   // filtering
-  if (grid_leaf > 0) {
-    pcl::VoxelGrid<pcl::PointXYZ> filter;
-    filter.setInputCloud(all_cloud);
-    filter.setLeafSize(grid_leaf, grid_leaf, grid_leaf);
-    filter.filter(*cloud);
-  } else {
-    cloud = all_cloud;
+  if (grid_leaf > 0) {  // 如果 grid_leaf 大於 0，進行濾波處理
+    pcl::VoxelGrid<pcl::PointXYZ> filter;  // 創建一個體素濾波器
+    filter.setInputCloud(all_cloud);  // 設置輸入點雲為 all_cloud
+    filter.setLeafSize(grid_leaf, grid_leaf, grid_leaf);  // 設置體素濾波器的葉子大小
+    filter.filter(*cloud);  // 將濾波後的點雲數據存儲到 cloud
+  } else {  // 如果 grid_leaf 小於等於 0，跳過濾波處理
+    cloud = all_cloud;  // 直接使用原始的 all_cloud 作為輸出
   }
 
   if (grid_leaf > radius) {
@@ -143,15 +143,15 @@ void loadMap(
     exit(EXIT_FAILURE);
   }
 
-  // normal estimation
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
-  pcl_::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
-  ne.setSearchSurface(all_cloud);
-  ne.setInputCloud(cloud);
-  ne.setSearchMethod(tree);
-  ne.setRadiusSearch(radius);
-  ne.compute(*normals);
-  std::cout << " normal " << normals->size() << ", points" << cloud->size() << ", surface " << all_cloud->size() << std::endl;
+  // 法向量估計
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());  // 創建一個 KdTree 用於搜索最近鄰點
+  pcl_::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;  // 創建一個 NormalEstimation 對象，用於估計法向量
+  ne.setSearchSurface(all_cloud);  // 設置用於搜索的點雲表面為 all_cloud
+  ne.setInputCloud(cloud);  // 設置輸入點雲為 cloud，即濾波後的點雲
+  ne.setSearchMethod(tree);  // 設置搜索方法為 KdTree
+  ne.setRadiusSearch(radius);  // 設置搜索半徑為 radius
+  ne.compute(*normals);  // 計算法向量，並將結果存儲到 normals
+  std::cout << " normal " << normals->size() << ", points" << cloud->size() << ", surface " << all_cloud->size() << std::endl;  // 打印法向量和點雲的數量信息
 
   return;
 }
