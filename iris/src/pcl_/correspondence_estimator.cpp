@@ -98,16 +98,16 @@ void CorrespondenceEstimationBackProjection<PointSource, PointTarget, NormalT, S
     return;
 
   correspondences.resize(indices_->size());
+//初始化一些變數
+  std::vector<int> nn_indices(k_);//保存最近的點的索引
+  std::vector<float> nn_dists(k_);//保存相應的距離
 
-  std::vector<int> nn_indices(k_);
-  std::vector<float> nn_dists(k_);
+  float min_dist = std::numeric_limits<float>::max();//初始化為一個非常大的值，用來保存最小距離
+  int min_index = 0;//用來記錄與當前源點最近的目標點的索引
+  float min_output_dist = 0;//存儲最小距離的值，用來設定對應關係的距離
 
-  float min_dist = std::numeric_limits<float>::max();
-  int min_index = 0;
-  float min_output_dist = 0;
-
-  pcl::Correspondence corr;
-  unsigned int nr_valid_correspondences = 0;
+  pcl::Correspondence corr;//用來表示一個對應關係，包括源點和目標點的索引及其之間的距離
+  unsigned int nr_valid_correspondences = 0;//用來計數有效的對應關係
 
   // Check if the template types are the same. If true, avoid a copy.
   // Both point types MUST be registered using the POINT_CLOUD_REGISTER_POINT_STRUCT macro!

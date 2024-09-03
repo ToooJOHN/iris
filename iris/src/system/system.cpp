@@ -126,10 +126,12 @@ int System::execute(int vslam_state, const Eigen::Matrix4f& T_vslam, const pcXYZ
   }
 
   // Update history
+  //更新历史轨迹 iris_history，移除最旧的位姿，并将当前的位姿 T_world 添加到历史轨迹的开头
   iris_history.pop_back();
   iris_history.push_front(T_world);
 
   // Pubush for the viewer
+  //将当前位姿的平移部分（T_world 和 T_vslam）加入到 iris_trajectory 和 offset_trajectory 中
   iris_trajectory.push_back(T_world.topRightCorner(3, 1));
   offset_trajectory.push_back((config.T_init * T_vslam).topRightCorner(3, 1));
   publisher.push(

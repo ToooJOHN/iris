@@ -61,6 +61,7 @@ Outcome Optimizer::optimize(
     std::cout << "itration= \033[32m" << itr << "\033[m";
 
     util::transformXYZINormal(vslam_data, tmp_cloud, tmp_normals, T_align);
+    //它使用给定的变换矩阵 T_align 对点云 vslam_data 进行变换，并将结果存储在 tmp_cloud 和 tmp_normals 中。
 
     // TODO: We should enable the estimator handle the PointXYZINormal
     estimator.setInputSource(tmp_cloud);
@@ -89,16 +90,20 @@ Outcome Optimizer::optimize(
     // Align pointclouds
     optimize::Aligner aligner(config.gain.scale, config.gain.latitude, config.gain.altitude, config.gain.smooth);
     T_align = aligner.estimate7DoF(
-        T_align, vslam_data, map_ptr->getTargetCloud(), correspondences,
+        T_align, vslam_data, map_ptr->getTargetCloud(), correspondences, //
         offset_camera, vllm_history, config.ref_scale, map_ptr->getTargetNormals());
-
+    //map_ptr 是一個指針，指向某個對象。這個對象可能是用來存儲或管理點雲數據的，例如一個地圖或一個點雲管理器。
+    //-> 是用來通過指針訪問該對象的成員或方法的操作符。這意味著你可以使用 map_ptr->方法名稱() 來調用 map_ptr 所指對象中的方法。
+    //getTargetCloud() 是這個對象的一個方法。當你調用這個方法時，它會返回該對象中存儲的目標點雲數據。
+    
     // Integrate
     vllm_camera = T_align * offset_camera;
 
     // Get Inovation
     float scale = util::getScale(vllm_camera);
-    float update_transform = (last_camera - vllm_camera).topRightCorner(3, 1).norm();        // called "Euclid distance"
-    float update_rotation = (last_camera - vllm_camera).topLeftCorner(3, 3).norm() / scale;  // called "chordal distance"
+    float update_transform = (last_camera - vllm_camera).topRightCorner(3, 1).norm();        // called "Euclid distance"  //update_transform 計算的是相機在兩次迭代之間的平移變化量（歐幾里得距離）
+    float update_rotation = (last_camera - vllm_camera).topLeftCorner(3, 3).norm() / scale;  // called "chordal distance" //update_rotation 計算的是相機在兩次迭代之間的旋轉變化量（弦距），並且考慮了縮放因素。
+    //這兩個量可以用來判斷對齊過程中的變化情況，通常在對齊算法中，如果這些量小於某個閾值，就可以認為對齊過程已經收斂，可以終止迭代
     std::cout << "update= \033[33m" << update_transform << " \033[m,\033[33m " << update_rotation << "\033[m" << std::endl;
 
     std::cout << "T_align\n\033[4;36m"
