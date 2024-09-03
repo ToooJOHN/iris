@@ -1,3 +1,6 @@
 [submodule "openvslam_bridge/3rd/openvslam"]
 	path = openvslam_bridge/3rd/openvslam
 	url = https://github.com/MapIV/openvslam.git
+[submodule "openvslam_bridge/3rd/vinsfusion"]
+	path = openvslam_bridge/3rd/vinsfusion
+	url = https://github.com/HKUST-Aerial-Robotics/VINS-Fusion.git
