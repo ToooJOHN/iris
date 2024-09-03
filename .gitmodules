@@ -4,3 +4,6 @@
 [submodule "openvslam_bridge/3rd/vinsfusion"]
 	path = openvslam_bridge/3rd/vinsfusion
 	url = https://github.com/HKUST-Aerial-Robotics/VINS-Fusion.git
+[submodule "vinsfusion_bridge/vinsfusion"]
+	path = vinsfusion_bridge/vinsfusion
+	url = https://github.com/HKUST-Aerial-Robotics/VINS-Fusion.git
