@@ -23,6 +23,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+//bridge_node.cpp 文件是 ROS 節點的主程序，它將 BridgeOpenVSLAM 類整合到 ROS 節點中，使得 VSLAM 系統可以通過 ROS 與其他模塊進行通信和協作。
+//功能：
+//ROS 節點初始化：設置並初始化 ROS 節點，讀取參數（如詞彙表路徑、配置文件路徑、影像話題名稱等），並準備 ROS 的訂閱和發布機制。
+//影像訂閱和處理：從 ROS 中訂閱影像數據，將其傳遞給 BridgeOpenVSLAM 類進行處理，並根據 SLAM 系統的輸出進行後續操作。
+//地標點雲發布：將從 BridgeOpenVSLAM 中獲得的地標點雲數據發布到 ROS 的指定話題，使得其他 ROS 節點可以使用這些數據。
+//相機位姿發布：通過 publishPose 方法將相機的位姿發布到 ROS 中，使得其他節點可以了解相機在場景中的當前位置。
+//主循環：控制節點的主循環，確保在 ROS 節點運行期間不斷處理新的影像數據並更新 SLAM 狀態。
+//總結：
+//bridge_node.cpp 是一個 ROS 節點，它將 BridgeOpenVSLAM 類的功能整合到 ROS 環境中，負責處理影像數據，並將結果（如地標點雲、相機位姿）發布到 ROS 網絡上，以便其他 ROS 節點可以使用這些信息。
 #include "bridge.hpp"
 #include <cv_bridge/cv_bridge.h>
 #include <fstream>

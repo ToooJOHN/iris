@@ -24,7 +24,15 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-//这段代码实现了一个类 BridgeOpenVSLAM，它与 OpenVSLAM 系统进行交互，为 iris 系统提供处理图像和获取地标点云信息的功能
+//这段代码实现了一个类 BridgeOpenVSLAM，它与 OpenVSLAM 系统进行交互封裝了與 OpenVSLAM 系統的交互邏輯，为 iris 系统提供处理图像和获取地标点云信息的功能
+//功能：
+//LAM 系統初始化：BridgeOpenVSLAM::setup 方法負責初始化 OpenVSLAM 系統，載入配置文件和詞彙表文件，並啟動 SLAM 系統。
+//地標點雲的獲取：BridgeOpenVSLAM::getLandmarksAndNormals 方法從 VSLAM 系統中獲取地標點雲，並將其轉換為 pcl::PointCloud<pcl::PointXYZINormal> 格式。
+//相機位姿獲取：BridgeOpenVSLAM::getCameraPose 方法返回當前相機的位姿矩陣。
+//圖像處理：BridgeOpenVSLAM::execute 方法接收輸入的圖像，將其餵入 SLAM 系統進行處理，並根據追踪狀態決定是否需要重置系統。
+//狀態管理：包含系統重置和狀態獲取等功能，以確保 SLAM 系統的穩定運行。
+//總結：
+//bridge.cpp 是一個封裝層，提供與 OpenVSLAM 系統進行高級交互的接口。它負責處理來自 VSLAM 系統的低層數據並轉換成 iris 可以使用的格式。
 #include "bridge.hpp"
 #include <openvslam/config.h>
 #include <openvslam/data/landmark.h>
