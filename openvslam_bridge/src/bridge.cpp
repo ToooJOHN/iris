@@ -51,6 +51,8 @@
 namespace iris
 {
 BridgeOpenVSLAM::~BridgeOpenVSLAM()
+// ~在 C++ 中表示析構函數（destructor）。析構函數是一個特殊的成員函數，當一個對象的生命週期結束時會被自動調用，用來釋放資源或執行清理工作。
+//這個析構函數的任務是確保當 BridgeOpenVSLAM 對象被銷毀時，SLAM 系統可以正常關閉，並且不會留下未完成的工作
 {
   if (SLAM_ptr == nullptr)
     return;
