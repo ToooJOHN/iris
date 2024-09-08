@@ -113,23 +113,23 @@ void BridgeOpenVSLAM::getLandmarksAndNormals(pcl::PointCloud<pcl::PointXYZINorma
 
   unsigned int max_id = SLAM_ptr->get_map_publisher()->get_max_keyframe_id();
   for (const auto local_lm : local_landmarks) {
-    unsigned int first_observed_id = local_lm->first_keyfrm_id_;
-    unsigned int last_observed_id = local_lm->last_observed_keyfrm_id_;
-    if (local_lm->will_be_erased()) continue;
-    if (local_lm->get_observed_ratio() < accuracy) continue;
+    unsigned int first_observed_id = local_lm->first_keyfrm_id_;//获取地标点第一次被观测到的关键帧 ID
+    unsigned int last_observed_id = local_lm->last_observed_keyfrm_id_;//获取地标点最后一次被观测到的关键帧 ID
+    if (local_lm->will_be_erased()) continue;//如果地标点即将被删除（无效），则跳过此地标点
+    if (local_lm->get_observed_ratio() < accuracy) continue;//如果地标点的观测比率低于预设的精度 accuracy，则跳过该地标点
     if (max_id > recollection && last_observed_id < max_id - recollection) continue;
-  //迭代所有地标点，根据地标点的观测比率、是否将被删除等条件过滤地标点
-    const openvslam::Vec3_t pos = local_lm->get_pos_in_world();
+  
+    const openvslam::Vec3_t pos = local_lm->get_pos_in_world();//获取地标点在世界坐标系中的位置 pos
     // const openvslam::Vec3_t normal = local_lm->get_obs_mean_normal();
 
     // when the distance is 5m or more, the weight is minimum.
     // float weight = static_cast<float>(1.0 - (t_vslam - pos).norm() * 0.2);
     float weight = 1.0f;
-    weight = std::min(std::max(weight, 0.1f), 1.0f);
+    weight = std::min(std::max(weight, 0.1f), 1.0f);//对权重进行限制，确保权重在 0.1 到 1.0 之间
 
-    Eigen::Vector3f t = getCameraPose().inverse().topRightCorner(3, 1);
+    Eigen::Vector3f t = getCameraPose().inverse().topRightCorner(3, 1);//获取当前相机的位姿（位置）并将其存储在 t 中
     if (pos.y() - t.y() < -height) continue;
-    //获取地标点在世界坐标系中的位置，并根据其与相机的距离计算一个权重。然后对地标点进行进一步的过滤
+    //如果地标点的高度 pos.y() 与相机高度 t.y() 的差值小于 -height（即地标点低于相机的高度阈值 height），则跳过此地标点。
     pcl::PointXYZINormal p;
     p.x = static_cast<float>(pos.x());
     p.y = static_cast<float>(pos.y());
