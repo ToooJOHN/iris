@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Map IV, Inc.
+d// Copyright (c) 2020, Map IV, Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,7 @@ System::System(const Config& config_, const std::shared_ptr<map::Map>& map_)
     iris_history.push_front(T_world);
 }
 
-int System::execute(int vslam_state, const Eigen::Matrix4f& T_vslam, const pcXYZIN::Ptr& vslam_data)
+int System::execute(int vslam_state, const Eigen::Matrix4f& T_vslam, const pcXYZIN::Ptr& vslam_data) //src/iris_node.cpp:  system->execute(2, T_vslam, vslam_data);
 {
   // ====================
   if (iris_state == IrisState::Inittializing) {

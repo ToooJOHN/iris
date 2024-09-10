@@ -32,7 +32,7 @@ namespace iris
 {
 namespace optimize
 {
-Outcome Optimizer::optimize(
+Outcome Optimizer::optimize(  //optimize 函數在 iris/src/system/system.cpp 文件中被調用
     const std::shared_ptr<map::Map>& map_ptr,
     const pcXYZIN::Ptr& vslam_data,
     const Eigen::Matrix4f& offset_camera,
@@ -88,7 +88,8 @@ Outcome Optimizer::optimize(
     Eigen::Matrix4f last_camera = vllm_camera;
 
     // Align pointclouds
-    optimize::Aligner aligner(config.gain.scale, config.gain.latitude, config.gain.altitude, config.gain.smooth);
+    optimize::Aligner aligner(config.gain.scale, config.gain.latitude, config.gain.altitude, config.gain.smooth);//Aligner 類的名稱，位於命名空間 optimize 中
+    //當上面這行代碼執行時，構造函數會被調用，並將 config.gain 中的這四個參數傳遞給 Aligner，用來設置 Aligner 在後續對齊過程中的行為。這些參數的具體含義和使用方式由 Aligner 類內部的邏輯決定。
     T_align = aligner.estimate7DoF(
         T_align, vslam_data, map_ptr->getTargetCloud(), correspondences, //
         offset_camera, vllm_history, config.ref_scale, map_ptr->getTargetNormals());
